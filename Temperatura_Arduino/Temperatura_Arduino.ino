@@ -31,6 +31,7 @@ void setup(void)
 
 void getTemp(){
   printTemperature(thermometerOne);
+  Serial.print(" ");
   printTemperature(thermometerTwo);
 }
 
