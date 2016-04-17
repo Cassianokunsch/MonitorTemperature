@@ -20,7 +20,7 @@ class ThreadTimer(threading.Thread):
         self.interface = interface
 
     def run(self):
-      while True:
+        while True:
           time.sleep(0.1)
           if self.inicio == 3600:
               self.hora += 1

@@ -135,10 +135,12 @@ class Ui_MainWindow(QMainWindow):
         self.lcdTemp1 = QLCDNumber(self.groupBoxLcdsTemp)
         self.lcdTemp1.setGeometry(QRect(30, 30, 211, 71))
         self.lcdTemp1.display("00.00")
+        self.lcdTemp1.setDigitCount(6)
 
         self.lcdTemp2 = QLCDNumber(self.groupBoxLcdsTemp)
         self.lcdTemp2.setGeometry(QRect(290, 30, 211, 71))
         self.lcdTemp2.display("00.00")
+        self.lcdTemp2.setDigitCount(6)
 
         self.hlLcdsTemp.addWidget(self.groupBoxLcdsTemp)
 

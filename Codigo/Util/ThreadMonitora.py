@@ -20,6 +20,8 @@ class ThreadMonitorar(threading.Thread):
     def run(self):
         while True:
             comando = "#temp"
+            i = 0
+            aux = ''
             temperaturas = []
 
             self.serial.write(comando.encode())
@@ -27,8 +29,19 @@ class ThreadMonitorar(threading.Thread):
             temperatura = self.serial.readline()
             temperatura = str(temperatura).split("'")
 
-            temperaturas.append(temperatura[1][:5])
-            temperaturas.append(temperatura[1][5:])
+            while (temperatura[1][i]!= " "):
+                aux+=temperatura[1][i]
+                i+=1
+            i+=1
+            aux2 = ''
+
+            for num in range(i, len(temperatura[1])):
+                aux2+=temperatura[1][num]
+
+
+
+            temperaturas.append(aux)
+            temperaturas.append(aux2)
 
             self.interface.setTemps(temperaturas)
 
