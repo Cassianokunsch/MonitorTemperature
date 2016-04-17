@@ -7,25 +7,34 @@
 author: Cassiano Kunsch das Neves
 last edited: <21/11/2015>
 """
-
-from PyQt4.QtCore import QThread, SIGNAL
+import threading
 import time
 
-class ThMonitora(QThread):
-    def __init__(self, serial):
-        QThread.__init__(self)
+class ThreadMonitorar(threading.Thread):
+    def __init__(self, serial, interface):
+        super(ThreadMonitorar, self).__init__()
+        self._stop_flag = False
         self.serial = serial
-
-    def __del__(self):
-        self.wait()
+        self.interface = interface
 
     def run(self):
         while True:
             comando = "#temp"
+            temperaturas = []
+
             self.serial.write(comando.encode())
-            print(2)
-            time.sleep(2)
+            time.sleep(1)
             temperatura = self.serial.readline()
             temperatura = str(temperatura).split("'")
-            self.emit(SIGNAL('update(QString)'), temperatura[1])
-            print(temperatura[1])
+
+            temperaturas.append(temperatura[1][:5])
+            temperaturas.append(temperatura[1][5:])
+
+            self.interface.setTemps(temperaturas)
+
+            if self._stop_flag:
+                break
+
+    def stop(self):
+        self._stop_flag = True
+        self.join()

@@ -8,11 +8,11 @@ author: Cassiano Kunsch das Neves
 last edited: <15/04/2016>
 """
 
-from PyQt4.QtCore import (SIGNAL, QRect, Qt)
+from PyQt4.QtCore import (QRect, Qt)
 from PyQt4.QtGui import (QMainWindow, QGridLayout, QHBoxLayout, QLCDNumber, QLabel, QFileDialog,
                          QVBoxLayout, QGroupBox, QPushButton, QWidget, QComboBox, QLineEdit, QIcon, QPixmap, QMessageBox)
 
-from Controle.Controle import ThreadMonitora, ComunicacaoArduino, ThreadTime, ControlInterface
+from Controle.Controle import ComunicacaoArduino, ControlInterface
 
 class Ui_MainWindow(QMainWindow):
     def __init__(self):
@@ -24,29 +24,18 @@ class Ui_MainWindow(QMainWindow):
         self.dados = []
 
     def startThreadTime(self):
-        #self.thTime = ControlInterface()
         self.controle.starThreadTime(self)
-        #self.connect(self.th, SIGNAL("updade(QString)"), self.setTime)
-        #self.thTime = ThreadTime()
-        #self.thTime.connect(self.thTime, SIGNAL("updade(QString)"), self.setTime)
-        #self.thTime.start()
 
     def startThreadMonitora(self):
         self.buttonStart.setDisabled(True)
         self.buttonStop.setDisabled(False)
         self.controle.starThreadMonitora(self.serial, self)
-        #self.workThread = ThreadMonitora(self.serial)
-        #self.workThread.connect(self.workThread, SIGNAL("PyQt_PyObject"), self.setTemps)
-        #self.workThread.start()
 
     def stopThreadMonitora(self):
         self.controle.stopThreadMonitora()
-        #self.workThread.terminate()
-        #GravaArquivo.startGravacao(self.LEditArqDes.text(), self.dados)
         self.controle.starThreadGravadora(self.LEditArqDes.text(), self.dados)
 
     def stopThreadTime(self):
-        #self.thTime.stopThreadTime()
         self.controle.stopThreadTime()
 
     def startThreads(self):
