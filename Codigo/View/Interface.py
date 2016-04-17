@@ -87,6 +87,9 @@ class Ui_MainWindow(QMainWindow):
         self.buttonStart.setGeometry(QRect(270, 80, 121, 23))
         self.buttonStart.setText("Start")
         self.buttonStart.clicked.connect(self.startThreads)
+        icon = QIcon()
+        icon.addPixmap(QPixmap("View\\Imagens\\start_icon.png"), QIcon.Normal, QIcon.Off)
+        self.buttonStart.setIcon(icon)
 
         self.buttonStop = QPushButton(self.groupBoxSetupAndActions)
         self.buttonStop.setGeometry(QRect(400, 80, 121, 23))
