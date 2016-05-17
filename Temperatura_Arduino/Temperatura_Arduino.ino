@@ -41,7 +41,7 @@ void printTemperature(DeviceAddress deviceAddress)
   float tempC = sensors.getTempC(deviceAddress);
   if (tempC == -127.00) 
   {
-    Serial.print("Erro ao ler temperatura !");
+    Serial.print("Erro");
   } 
   else 
   {

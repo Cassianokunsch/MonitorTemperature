@@ -1,0 +1,4 @@
+Você deve entrar nesse site http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4
+e procurar por PyQt4-4.11.4-cp34-none-win32.whl, depois de baixar, você coloque
+esse arquivo no mesmo diretorio da sua virtualenv. Apos isso você inicia sua virtualenv
+e dê o comando pip install PyQt4-4.11.4-cp34-none-win32.whl, que ele vai instalar o PtQy4 na sua VM.

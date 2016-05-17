@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-< O que é o arquivo >
+< Essa Thread é responsável por controlar o tempo percorrido pelo software. >
 
 author: Cassiano Kunsch das Neves
 last edited: <17/04/2016>
@@ -21,19 +21,19 @@ class ThreadTimer(threading.Thread):
 
     def run(self):
         while True:
-          time.sleep(0.1)
-          if self.inicio == 3600:
-              self.hora += 1
-              self.inicio = 0
+            time.sleep(0.1)
+            if self.inicio == 3600:
+                self.hora += 1
+                self.inicio = 0
 
-          text = "%02d:%02d:%02d" % (self.hora, self.inicio / 60, self.inicio % 60)
-          self.interface.setTime(text)
+            text = "%02d:%02d:%02d" % (self.hora, self.inicio / 60, self.inicio % 60)
+            self.interface.setTime(text)
 
-          self.inicio = self.inicio + 0.1
-          self.inicio = round(self.inicio, 1)
+            self.inicio = self.inicio + 0.1
+            self.inicio = round(self.inicio, 1)
 
-          if self._stop_flag:
-            break
+            if self._stop_flag:
+                break
 
     def stop(self):
         self._stop_flag = True
