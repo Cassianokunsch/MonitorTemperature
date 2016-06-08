@@ -7,34 +7,38 @@
 author: Cassiano Kunsch das Neves
 last edited: <16/05/2016>
 """
-from PyQt4.QtCore import Qt, QSize, QRect
+import sys
+import pyqtgraph as pg
+import numpy as np
+from PyQt4.QtCore import Qt, QSize, QRect, QTimer, SIGNAL
 from PyQt4.QtGui import (QMainWindow, QFont, QSpacerItem, QStatusBar,
                          QTextEdit, QGridLayout, QSizePolicy, QColor,
                          QTextCursor, QHBoxLayout, QLCDNumber, QLabel,
                          QFileDialog, QVBoxLayout, QGroupBox, QPushButton,
-                         QWidget, QLineEdit, QIcon,
-                         QPixmap, QMessageBox, QIntValidator)
+                         QWidget, QLineEdit, QIcon, QTextBrowser, QPen,
+                         QPixmap, QMessageBox, QIntValidator, QComboBox)
 from time import strftime
-from Controle.Controle import ControlInterface
+from Controle.Controle import ControlInterface, ComunicacaoArduino
 
 
 class InterfaceMonitora(QMainWindow):
     def __init__(self):
         super(InterfaceMonitora, self).__init__(None)
         self.dadosTempo = []
+        self.dadosTemp1 = []
+        self.dadosTemp2 = []
+        self.dadosTempo3 = []
         self.dados = []
-        self.serial = None
         self.controle = ControlInterface()
         self.setupUi()
         self.creatBoxTimeCurrent()
         self.creatBoxTemps()
         self.creatStatusBar()
         self.addLayout()
-        self.startConexaoArduino()
 
     def setupUi(self):
-        self.setMaximumSize(549, 537)
-        self.setMinimumSize(549, 537)
+        #self.setMaximumSize(549, 537)
+        self.setMinimumSize(1270, 600)
         self.centralWidget = QWidget(self)
         self.setCentralWidget(self.centralWidget)
 
@@ -46,9 +50,6 @@ class InterfaceMonitora(QMainWindow):
         self.gridLayout = QGridLayout(self.centralWidget)
         self.gridLayout.setMargin(11)
         self.gridLayout.setSpacing(6)
-
-    def setSerial(self, serial):
-        self.serial = serial
 
     def setWarning(self, warning):
         self.TextLog.setTextColor(QColor("red"))
@@ -63,9 +64,6 @@ class InterfaceMonitora(QMainWindow):
         self.TextLog.insertPlainText(strftime('[%H:%M:%S]') + information)
         self.TextLog.moveCursor(QTextCursor.End)
 
-    def startConexaoArduino(self):
-        self.controle.startThreadConexao(self)
-
     def onButtons(self):
         self.buttonStart.setDisabled(False)
         self.btnBrowser.setDisabled(False)
@@ -76,7 +74,6 @@ class InterfaceMonitora(QMainWindow):
                 self.LETimeAmostragem.setText("2")
             self.startThreadTime()
             self.startThreadMonitora()
-            # self.startThreadInTime()
         else:
             typeMsg = "Aviso"
             msgSelecionaArq = "Preencha os campos corretamente!"
@@ -86,18 +83,13 @@ class InterfaceMonitora(QMainWindow):
     def startThreadTime(self):
         self.controle.starThreadTime(self)
 
-    def startThreadInTime(self):
-        diretorio = self.lineEditWay.text()
-        self.controle.starThreadGravaPeriodicamente(diretorio, self.dados, self)
-
     def startThreadMonitora(self):
         self.buttonStart.setDisabled(True)
         self.buttonStop.setDisabled(False)
         tempoAmostragem = int(self.LETimeAmostragem.text())
         self.setInformation("Iniciando monitoramento...\n")
-        self.controle.starThreadMonitora(self.serial, self, tempoAmostragem)
+        self.controle.starThreadMonitora(self, tempoAmostragem, self.selectionPortCOM())
         self.setInformation("Monitorando...\n")
-
 
     def stopThreads(self):
         self.buttonStop.setEnabled(False)
@@ -118,9 +110,6 @@ class InterfaceMonitora(QMainWindow):
         diretorio = self.lineEditWay.text()
         self.controle.starThreadGravadora(diretorio, self.dados, self)
 
-    def stopThreadInTime(self):
-        self.controle.stopThreadGravaPeriodicamente()
-
     def stopThreadTime(self):
         self.controle.stopThreadTime()
 
@@ -138,6 +127,12 @@ class InterfaceMonitora(QMainWindow):
             self.lcdTemp2.display(temps[1])
             temps.append(self.dadosTempo[len(self.dadosTempo) - 1])
             self.dados.append(temps)
+            self.dadosTemp1.append(float(self.dados[len(self.dados)-1][0]))
+            self.dadosTemp2.append(float(self.dados[len(self.dados)-1][1]))
+            #self.dadosTempo3.append(float(self.dados[len(self.dados)-1][2]))
+            self.emit(SIGNAL("Update(PyQt_PyObject, QString)"), self.dadosTemp1, "#FF0000")
+            self.emit(SIGNAL("Update(PyQt_PyObject, QString)"), self.dadosTemp2, "#0000FF")
+            #self.emit(SIGNAL("Update(PyQt_PyObject, QString)"), self.dadosTempo3, "#FF0000")
 
     def setTime(self, time):
         if time not in self.dadosTempo:
@@ -183,7 +178,7 @@ class InterfaceMonitora(QMainWindow):
         # COLOCANDO LAYOUT NO GRUPOBOXTIMECURRENT E ADICIONANDO O LAYOUT NO
         # GRIDLAYOUT PRINCIPAL
         self.LayoutTempoCurrent.addWidget(self.groupBoxTimeCurrent)
-        self.gridLayout.addLayout(self.LayoutTempoCurrent, 1, 0, 1, 1)
+        #self.gridLayout.addLayout(self.LayoutTempoCurrent, 1, 0, 1, 1)
 
     def creatBoxTemps(self):
         # CRIANDO O LAYOUT HORIZONTAL PARA COLOCAR AS TEMPERATURAS
@@ -221,7 +216,8 @@ class InterfaceMonitora(QMainWindow):
         # COLOCANDO LAYOUT NO GRUPOBOXTEMPS E ADICIONANDO O LAYOUT NO
         # GRIDLAYOUT PRINCIPAL
         self.LayoutTemps.addWidget(self.groupBoxTemps)
-        self.gridLayout.addLayout(self.LayoutTemps, 0, 0, 1, 1)
+
+        #self.gridLayout.addLayout(self.LayoutTemps, 0, 0, 1, 1)
 
     def creatLayoutTimeAmostragem(self):
         # CRIANDO O LAYOUT HORIZONTAL PARA POR O LABEL DE AMOSTRAGEM O
@@ -243,7 +239,8 @@ class InterfaceMonitora(QMainWindow):
         self.LETimeAmostragem.setSizePolicy(sizePolicy)
         self.LETimeAmostragem.setMaximumSize(QSize(40, 16777215))
         self.LETimeAmostragem.setLayoutDirection(Qt.LeftToRight)
-        self.LETimeAmostragem.setValidator(QIntValidator())
+        self.validator = QIntValidator(0, 999999, self)
+        self.LETimeAmostragem.setValidator(self.validator)
 
         # CRIANDO UM SPACER PARA ORGANIZAR DENTRO DO LAYOUT OS ITENS
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -275,7 +272,7 @@ class InterfaceMonitora(QMainWindow):
         diretorio = "View\\Imagens\\pasta.png"
         icon.addPixmap(QPixmap(diretorio), QIcon.Normal, QIcon.Off)
         self.btnBrowser.setIcon(icon)
-        self.btnBrowser.setDisabled(True)
+        #self.btnBrowser.setDisabled(True)
 
         # ADIONANDO OS WIDGETS NO LAYOUT
         self.HLayoutArquivo.addWidget(self.btnBrowser)
@@ -311,7 +308,7 @@ class InterfaceMonitora(QMainWindow):
         diretorio = "View\\Imagens\\start_icon.png"
         icon.addPixmap(QPixmap(diretorio), QIcon.Normal, QIcon.Off)
         self.buttonStart.setIcon(icon)
-        self.buttonStart.setDisabled(True)
+        #self.buttonStart.setDisabled(True)
 
         # CRIANDO O BOTAO DE STOP
         self.buttonStop = QPushButton(self.groupBoxInfos)
@@ -323,6 +320,32 @@ class InterfaceMonitora(QMainWindow):
         self.layoutBotoes.addItem(spacerItem1)
         self.layoutBotoes.addWidget(self.buttonStart)
         self.layoutBotoes.addWidget(self.buttonStop)
+
+    def creatComboBox(self):
+        # CRIANDO O LAYOUT PARA POR O COMBOBOX E O LABEL
+        self.layoutComboBox = QHBoxLayout()
+
+        # CRIANDO O COMBOBOX
+        self.comboBox = QComboBox(self.groupBoxInfos)
+        self.comboBox.currentIndexChanged.connect(self.selectionPortCOM)
+
+        # LISTANDO AS PORTAS COM DISPONIVEIS
+        self.lstPort = ComunicacaoArduino.find_ports()
+        if self.lstPort == []:
+            self.comboBox.addItem("Nenhum dispositivo conectado. Reinicie o programa.")
+        else:
+            self.comboBox.addItems(self.lstPort)
+
+        # CRIANDO O LABEL
+        mensagem = "Selecione a porta COM conectada ao Arduino: "
+        self.labelComboBox = QLabel(mensagem, self.groupBoxInfos)
+
+        # ADICIONANDO O COMBOBOX E O LABEL AO LAYOUT
+        self.layoutComboBox.addWidget(self.labelComboBox)
+        self.layoutComboBox.addWidget(self.comboBox)
+
+    def selectionPortCOM(self):
+        return self.comboBox.currentText()
 
     def creatStatusBar(self):
         self.statusBar = QStatusBar(self)
@@ -343,14 +366,17 @@ class InterfaceMonitora(QMainWindow):
         # CRIANDO OS LAYOUT'S
         self.creatLayoutTimeAmostragem()
         self.creatLayoutArquivo()
+        self.creatComboBox()
         self.creatTextBrowser()
         self.creatLayoutBotoes()
+        self.graph()
 
         # ADICOINANDO O LAYOUT TIME AMOSTRAGEM, LABEL, LAYOUT ARQUIVO,
         # TEXTO LOG E GRID NO LAYOUT VERTICAL
         self.verticalLayout_4.addLayout(self.HLayoutTimeAmostragem)
         self.verticalLayout_4.addWidget(self.lbArquivo)
         self.verticalLayout_4.addLayout(self.HLayoutArquivo)
+        self.verticalLayout_4.addLayout(self.layoutComboBox)
         self.verticalLayout_4.addWidget(self.TextLog)
         self.verticalLayout_4.addLayout(self.layoutBotoes)
 
@@ -358,7 +384,44 @@ class InterfaceMonitora(QMainWindow):
         self.LayoutInfos.addWidget(self.groupBoxInfos)
 
         # ADICIONANDO O LAYOUT INFOS NO GRID PRINCIPAL
-        self.gridLayout.addLayout(self.LayoutInfos, 2, 0, 1, 1)
+        #self.gridLayout.addLayout(self.LayoutInfos, 2, 0, 1, 1)
+
+        self.verticalLayouts = QVBoxLayout()
+        self.verticalLayouts.setMargin(11)
+        self.verticalLayouts.setSpacing(6)
+        self.verticalLayouts.addLayout(self.LayoutTemps)
+        self.verticalLayouts.addLayout(self.LayoutTempoCurrent)
+        self.verticalLayouts.addLayout(self.LayoutInfos)
+
+        self.horizontalMaior = QHBoxLayout()
+        self.horizontalMaior.setMargin(11)
+        self.horizontalMaior.setSpacing(6)
+
+        self.horizontalMaior.addLayout(self.verticalLayouts)
+        self.horizontalMaior.addWidget(self.widget)
+
+        self.gridLayout.addLayout(self.horizontalMaior, 0, 0, 1, 1)
+
+    def graph(self):
+        self.widget = QWidget(self.centralWidget)
+
+        self.maxTime = 5
+        self.graphTemp = pg.PlotWidget(title="Temperatura x Tempo")
+        self.graphTemp.showGrid(True, True)
+        self.graphTemp.setLabel('left', 'Temperatura', units='°C')
+        self.graphTemp.setLabel('bottom', 'Tempo', units='s')
+        #self.graphTemp.setRange(xRange=[3, self.maxTime], yRange=[-50, 50])
+
+        self.connect(self, SIGNAL("Update(PyQt_PyObject, QString)"), self.update)
+
+        self.gridLayout_2 = QGridLayout(self.widget)
+        self.gridLayout_2.setMargin(11)
+        self.gridLayout_2.setSpacing(6)
+
+        self.gridLayout_2.addWidget(self.graphTemp, 0, 0, 1, 1)
+
+    def update(self, list, color):
+        self.graphTemp.plotItem.plot(list, pen=QPen(QColor(color)))
 
     def closeEvent(self, event):
         typeMsg = "Aviso"
@@ -370,8 +433,14 @@ class InterfaceMonitora(QMainWindow):
         if reply == QMessageBox.Yes:
             event.accept()
             self.controle.stopThreadMonitora()
-            self.controle.stopThreadGravaPeriodicamente()
             self.controle.stopThreadTime()
-            self.controle.stopThreadConexao()
         else:
             event.ignore()
+
+class TimeAxisItem(pg.AxisItem):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        def tickStrings(self):
+            # PySide's QTime() initialiser fails miserably and dismisses args/kwargs
+            return [QTime().addMSecs(value).toString('mm:ss') for value in values]

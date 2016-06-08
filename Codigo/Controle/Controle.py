@@ -5,37 +5,38 @@
 < Arquivo que faz a comunicação entre a view e o modelo. >
 
 author: Cassiano Kunsch das Neves
-last edited: <15/04/2016>
+last edited: <16/05/2016>
 """
 
 from Util.ThreadMonitora import ThreadMonitorar
 from Util.ThreadGravadora import ThreadGravar
 from Util.ThreadTime import ThreadTimer
-from Util.ThreadGravaInTime import ThGravaInTime
-from Util.ThreadConexaoArduino import ThConexao
 from serial import Serial, SerialException
-import subprocess
+import sys
 
 
 class ComunicacaoArduino(object):
 
     @staticmethod
-    def start_communication():
+    def find_ports():
+        if sys.platform.startswith('win'):
+            ports = ['COM' + str(i + 1) for i in range(256)]
+        ports = ['COM' + str(i + 1) for i in range(256)]
+        result = []
+        for port in ports:
+            try:
+                s = Serial(port)
+                s.close()
+                result.append(port)
+            except(OSError, SerialException):
+                pass
 
-        try:
-            comport = Serial(ComunicacaoArduino.get_serial_port(), 9600, timeout=1, rtscts=True)
-
-            return comport
-
-        except SerialException:
-            return "Arduino não conectado!"
+        return result
 
     @staticmethod
-    def get_serial_port():
-        ports = subprocess.getoutput('python -m serial.tools.list_ports').split()
-
-        return ports[0]
-
+    def start_communication(port):
+        comport = Serial(port, 9600, timeout=1, rtscts=True)
+        return comport
 
 class ControlInterface(object):
 
@@ -47,30 +48,14 @@ class ControlInterface(object):
         if hasattr(self, 'threadTime'):
             self.threadTime.stop()
 
-    def starThreadMonitora(self, serial, referInterface, tempo):
-        self.threadMonitora = ThreadMonitorar(serial, referInterface, tempo)
+    def starThreadMonitora(self, referInterface, tempo, port):
+        self.threadMonitora = ThreadMonitorar(referInterface, tempo, ComunicacaoArduino, port)
         self.threadMonitora.start()
 
     def stopThreadMonitora(self):
         if hasattr(self, 'threadMonitora'):
             if self.threadMonitora.isAlive():
                 self.threadMonitora.stop()
-
-    def starThreadGravaPeriodicamente(self, diretorioArqDestino, lst_dados, referInterface):
-        self.threadPeriodicamente = ThGravaInTime(diretorioArqDestino, lst_dados, referInterface)
-        self.threadPeriodicamente.start()
-
-    def stopThreadGravaPeriodicamente(self):
-        if hasattr(self, 'threadPeriodicamente'):
-            self.threadPeriodicamente.stop()
-
-    def startThreadConexao(self, referInterface):
-        self.threadConexao = ThConexao(referInterface, ComunicacaoArduino)
-        self.threadConexao.start()
-
-    def stopThreadConexao(self):
-        if hasattr(self, 'threadConexao'):
-            self.threadConexao.stop()
 
     @staticmethod
     def starThreadGravadora(diretorioArqDestino, lst_dados, referinterface):

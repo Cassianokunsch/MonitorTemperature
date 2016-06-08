@@ -12,22 +12,24 @@ import time
 
 
 class ThreadMonitorar(threading.Thread):
-    def __init__(self, serial, interface, tempoAmostragem):
+    def __init__(self, interface, tempoAmostragem, conexaoArduino, port):
         super(ThreadMonitorar, self).__init__()
         self._stop_flag = False
-        self.serial = serial
         self.interface = interface
         self.tempoAmostragem = tempoAmostragem
+        self.conexaoArduino = conexaoArduino
+        self.port = port
         self.comando = "#temp"
 
     def run(self):
+        self.serial = self.conexaoArduino.start_communication(self.port)
+        time.sleep(1)
         self.getMessage(self.tempoAmostragem)
         while True:
             if self._stop_flag:
                 break
 
             self.getMessage(self.tempoAmostragem)
-
 
     def getMessage(self, tempoAmostragem):
         if tempoAmostragem != 2:

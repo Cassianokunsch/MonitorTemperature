@@ -12,17 +12,18 @@ import time
 
 
 class ThConexao(threading.Thread):
-    def __init__(self, interface, conexaoArduino):
+    def __init__(self, interface, conexaoArduino, port):
         super(ThConexao, self).__init__()
         self._stop_flag = False
         self.interface = interface
         self.conexaoArduino = conexaoArduino
         self.serial = None
+        self.port = port
 
     def run(self):
         while True:
             self.interface.setInformation("Conectando ao Arduino...\n")
-            self.serial = self.conexaoArduino.start_communication()
+            self.serial = self.conexaoArduino.start_communication(self.port)
 
             if "Arduino não conectado!" == self.serial:
                 self.interface.setWarning("Arduino não conectado!\n")
