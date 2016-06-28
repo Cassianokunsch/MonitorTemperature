@@ -10,12 +10,53 @@ last edited: <16/05/2016>
 
 from Util.ThreadMonitora import ThreadMonitorar
 from Util.ThreadGravadora import ThreadGravar
-from Util.ThreadTime import ThreadTimer
+from Util.ThreadBackup import ThreadBackup
+from Util.ThreadLog import ThreadLog
 from serial import Serial, SerialException
 import sys
 
 
-class ComunicacaoArduino(object):
+class Control(object):
+
+    def instThreadMonitora(self, tempo, port):
+        threadMonitora = ThreadMonitorar(tempo, self, port)
+        return threadMonitora
+
+    def startThreadMonitora(self, threadMonitora):
+        threadMonitora.start()
+
+    def stopThreadMonitora(self, threadMonitora):
+        threadMonitora.terminate()
+
+    def instThreadBackup(self, diretorioArqDestino, lst_dados):
+        threadBackup = ThreadBackup(diretorioArqDestino, lst_dados)
+        return threadBackup
+
+    def startThreadBackup(self, threadBackup):
+        threadBackup.start()
+
+    def stopThreadBackup(self, threadBackup):
+        threadBackup.terminate()
+
+    def instThreadGravadora(self, diretorioArqDestino, lst_dados, message):
+        threadGravadora = ThreadGravar(diretorioArqDestino, lst_dados, message)
+        return threadGravadora
+
+    def startThreadGravadora(self, threadGravadora):
+        threadGravadora.start()
+
+    def stopThreadGravadora(self, threadGravadora):
+        threadGravadora.terminate()
+
+    def instThreadLog(self, diretorioArqDestino, lst_dados):
+        threadLog = ThreadLog(diretorioArqDestino, lst_dados)
+        return threadLog
+
+    def startThreadLog(self, threadLog):
+        threadLog.start()
+
+    def stopThreadLog(self, threadLog):
+        threadLog.terminate()
 
     @staticmethod
     def find_ports():
@@ -37,27 +78,3 @@ class ComunicacaoArduino(object):
     def start_communication(port):
         comport = Serial(port, 9600, timeout=1, rtscts=True)
         return comport
-
-class ControlInterface(object):
-
-    def starThreadTime(self, referInterface):
-        self.threadTime = ThreadTimer(referInterface)
-        self.threadTime.start()
-
-    def stopThreadTime(self):
-        if hasattr(self, 'threadTime'):
-            self.threadTime.stop()
-
-    def starThreadMonitora(self, referInterface, tempo, port):
-        self.threadMonitora = ThreadMonitorar(referInterface, tempo, ComunicacaoArduino, port)
-        self.threadMonitora.start()
-
-    def stopThreadMonitora(self):
-        if hasattr(self, 'threadMonitora'):
-            if self.threadMonitora.isAlive():
-                self.threadMonitora.stop()
-
-    @staticmethod
-    def starThreadGravadora(diretorioArqDestino, lst_dados, referinterface):
-        thread = ThreadGravar(diretorioArqDestino, lst_dados, referinterface)
-        thread.start()

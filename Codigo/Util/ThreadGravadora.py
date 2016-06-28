@@ -8,16 +8,17 @@ author: Cassiano Kunsch das Neves
 last edited: <12/12/2015>
 """
 
-from Model.Gravador import GravaArquivo
-import threading
+from Util.Gravador import GravaArquivo
+from PyQt4 import QtCore
 
 
-class ThreadGravar(threading.Thread):
-    def __init__(self,  diretorioArqDestino, lst_dados, referinterface):
+class ThreadGravar(QtCore.QThread):
+    def __init__(self,  diretorioArqDestino, lst_dados, message):
         super(ThreadGravar, self).__init__()
         self.dados = lst_dados
         self.diretorioDestino = diretorioArqDestino
-        self.referinterface = referinterface
+        self.message = message
 
     def run(self):
-        GravaArquivo.startGravacao(self.diretorioDestino, self.dados, self.referinterface)
+        GravaArquivo.startGravacao(self.diretorioDestino, self.dados, self, self.message)
+        self.terminate()

@@ -19,7 +19,7 @@ shortcut_table = [
 
 msi_data = {"Shortcut": shortcut_table}
 bdist_msi_options = {'data': msi_data}
-build_exe_options = {"packages": ["os", "pandas", "threading", "sys", "serial", "subprocess"], "include_files": ["View\\", "Controle\\", "Util\\", "Model\\"]}
+build_exe_options = {"packages": ["os", "pandas", "threading", "sys", "serial", "subprocess", "pyqtgraph"], "include_files": ["View\\", "Controle\\", "Util\\", "Model\\"]}
 
 base = None
 if sys.platform == "win32":
@@ -29,6 +29,4 @@ setup(  name = "Monitora Temperatura",
         version = "0.1",
         description = "Monitora a temperatura da caixa.",
         options = {"build_exe": build_exe_options,"bdist_msi": bdist_msi_options},
-        executables = [Executable("main.py", base=base)])
-
-
+        executables = [Executable("main_app.py", base=base)])

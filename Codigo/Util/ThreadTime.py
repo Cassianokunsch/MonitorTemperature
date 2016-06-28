@@ -21,7 +21,7 @@ class ThreadTimer(threading.Thread):
 
     def run(self):
         while True:
-            time.sleep(0.1)
+            time.sleep(1)
             if self.inicio == 3600:
                 self.hora += 1
                 self.inicio = 0
@@ -29,8 +29,7 @@ class ThreadTimer(threading.Thread):
             text = "%02d:%02d:%02d" % (self.hora, self.inicio / 60, self.inicio % 60)
             self.interface.setTime(text)
 
-            self.inicio = self.inicio + 0.1
-            self.inicio = round(self.inicio, 1)
+            self.inicio = self.inicio + 1
 
             if self._stop_flag:
                 break

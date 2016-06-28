@@ -8,12 +8,13 @@ author: Cassiano Kunsch das Neves
 last edited: <10/12/2015>
 """
 import xlsxwriter
+from PyQt4 import QtCore
 
 
 class GravaArquivo(object):
 
     @staticmethod
-    def startGravacao(diretorioArqDestino, dados, referinterface):
+    def startGravacao(diretorioArqDestino, dados, referinterface, message):
 
         workbook = xlsxwriter.Workbook(diretorioArqDestino)
         worksheet = workbook.add_worksheet()
@@ -32,4 +33,4 @@ class GravaArquivo(object):
             row += 1
 
         workbook.close()
-        referinterface.setInformation("Arquivo salvo com sucesso!!!\n")
+        referinterface.emit(QtCore.SIGNAL("saveFile(QString, QString)"), message, "black")
